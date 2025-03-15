@@ -1,5 +1,4 @@
-"""Configs for preprocess ECG signals.
-"""
+"""Configs for preprocess ECG signals."""
 
 
 class Config:
@@ -20,7 +19,7 @@ class Config:
         """
 
         self.seed = 42
-        self.seconds = 60
+        self.seconds = 10
         self.fs = 128
         self.label_type = "death_label"  # "ejection_fraction"
         self.class_threshold = 0.50

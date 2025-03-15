@@ -397,11 +397,14 @@ def preprocess_chagas(
 
 
 def save_unprocessed(
-    path: str = "data/data_128hz.pkl",
+    pkl_path: str = "data/data_128hz.pkl",
+    output_path: str = "unprocessed",
     current_config: object = None,
 ):
-    with open(path, "rb") as fin:
+    with open(pkl_path, "rb") as fin:
         res = pickle.load(fin)
+
+    os.makedirs(f"data/{output_path}", exist_ok=True)
 
     if current_config.label_type == "death_label":
         ef_label = res["death_label"].astype(np.int16)
@@ -424,7 +427,7 @@ def save_unprocessed(
     }
 
     for each_key in data_split_result:
-        with open(f"data/unprocessed/{each_key}.pkl", "wb") as fout:
+        with open(f"data/{output_path}/{each_key}.pkl", "wb") as fout:
             pickle.dump(data_split_result[each_key].astype(object), fout)
 
 
@@ -436,9 +439,9 @@ def incremental_read_data(
     else:
         slide_method = slide_and_cut
 
-    with open(unprocessed_path + "x_train.pkl", "rb") as fin:
+    with open(os.path.join(unprocessed_path, "x_train.pkl"), "rb") as fin:
         X_train_og = pickle.load(fin)
-    with open(unprocessed_path + "y_train.pkl", "rb") as fin:
+    with open(os.path.join(unprocessed_path, "y_train.pkl"), "rb") as fin:
         Y_train_og = pickle.load(fin)
 
     print("before (train): ")
@@ -451,14 +454,15 @@ def incremental_read_data(
         percentage=current_config.beat_percentage,
         filters=current_config.filters,
         current_config=current_config,
+        output_pid=True,  # for music
     )
     del X_train_og, Y_train_og
     print("after (train): ")
     print(Counter(Y_train))
 
-    with open(unprocessed_path + "x_val.pkl", "rb") as fin:
+    with open(os.path.join(unprocessed_path, "x_val.pkl"), "rb") as fin:
         X_val_og = pickle.load(fin)
-    with open(unprocessed_path + "y_val.pkl", "rb") as fin:
+    with open(os.path.join(unprocessed_path, "y_val.pkl"), "rb") as fin:
         Y_val_og = pickle.load(fin)
 
     print("before (val): ")
@@ -477,9 +481,9 @@ def incremental_read_data(
     print("after (val): ")
     print(Counter(Y_val))
 
-    with open(unprocessed_path + "x_test.pkl", "rb") as fin:
+    with open(os.path.join(unprocessed_path, "x_test.pkl"), "rb") as fin:
         X_test_og = pickle.load(fin)
-    with open(unprocessed_path + "y_test.pkl", "rb") as fin:
+    with open(os.path.join(unprocessed_path, "y_test.pkl"), "rb") as fin:
         Y_test_og = pickle.load(fin)
 
     print("before (test): ")
@@ -522,7 +526,7 @@ def incremental_read_data(
 
 
 def incremental_preprocess_chagas(
-    unprocessed_path: str = "data/unprocessed/",
+    unprocessed_path: str = "data/unprocessed",
     class_threshold: float = 0.5,
     current_config: object = None,
 ):
@@ -540,6 +544,7 @@ def incremental_preprocess_chagas(
         )
     )
 
+    print("normalizing...")
     x_train = normalize(x_train, type_norm=current_config.type_norm)
     x_val = normalize(x_val, type_norm=current_config.type_norm)
     x_test = normalize(x_test, type_norm=current_config.type_norm)
