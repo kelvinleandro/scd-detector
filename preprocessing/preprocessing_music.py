@@ -1,8 +1,8 @@
-from preprocessing.preprocessing_chagas import (
+from .preprocessing_chagas import (
     save_unprocessed,
     incremental_preprocess_chagas,
 )
-from preprocessing.status_manegement import save_preprocessed_pkls
+from .status_manegement import save_preprocessed_pkls
 from configs.preprocess_config import Config
 
 if __name__ == "__main__":
