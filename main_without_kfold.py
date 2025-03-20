@@ -26,7 +26,7 @@ import tensorflow as tf
 print("Num GPUs Available: ", len(tf.config.list_physical_devices("GPU")))
 
 # exit(1)
-run_transfer_learning = True
+run_transfer_learning = False
 
 preprocess_conf = preprocess_config.Config()
 
@@ -39,11 +39,18 @@ transfer_learning_conf.batch_size = imlenet_conf.batch_size
 imlenet_conf.decision_threshold = transfer_learning_conf.decision_threshold
 
 data_split_result = main_preprocessing.run_preprocessing_steps(
-    preprocess_conf, compare=False
+    preprocess_conf,
+    compare=False,
+    data_path="music_preprocessed_10s_hotencodeFalse_standard",
 )
 imlenet_conf.signal_len = data_split_result["x_train"].shape[1]
 
 print("SHAPEEEEEEEEEEEEEEEEE")
+print(data_split_result["y_test"].shape, data_split_result["pid_test"].shape)
+# for a single output model (problem in f1-score metric)
+data_split_result["y_train"] = data_split_result["y_train"].reshape(-1, 1)
+data_split_result["y_val"] = data_split_result["y_val"].reshape(-1, 1)
+data_split_result["y_test"] = data_split_result["y_test"].reshape(-1, 1)
 print(data_split_result["y_test"].shape, data_split_result["pid_test"].shape)
 
 if preprocess_conf.kfolds:
@@ -172,6 +179,7 @@ if preprocess_conf.kfolds:
         )
 
 else:
+    print("Training without kfold")
     hash_pids = {}
     print(data_split_result["x_train"].shape, data_split_result["y_train"].shape)
     train_gen = DataGen(
@@ -197,7 +205,7 @@ else:
         preprocess_conf=preprocess_conf,
         log_wandb_conf=log_wandb_conf,
         transfer_learning_conf=transfer_learning_conf,
-        transfer_learning=False,
+        transfer_learning=run_transfer_learning,
         hash_pids=hash_pids,
     )
 
@@ -209,5 +217,5 @@ else:
         log_wandb=wandb,
         log_wandb_conf=log_wandb_conf,
         transfer_learning_conf=transfer_learning_conf,
-        transfer_learning=False,
+        transfer_learning=run_transfer_learning,
     )

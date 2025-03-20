@@ -1,12 +1,12 @@
 import json
 import sys
 
-from tensorflow.keras.callbacks import Callback
-
-import hashlib
 import tensorflow as tf
 from tensorflow import keras
+from tensorflow.keras.callbacks import Callback, ModelCheckpoint
 from keras.models import Model
+
+import hashlib
 import os
 
 from models import imlenet, baseline, imlenet_transfer_learning
@@ -213,8 +213,20 @@ def train_model(
 
     best_weights_callback = BestWeightsCallback(metric)
     wand_callback = WandbWeightsCallback()
+    reduce_lr = (
+        keras.callbacks.ReduceLROnPlateau(
+            monitor=metric, mode="max", factor=0.1, patience=5, min_lr=1e-07
+        ),
+    )
+    callbacks = [stop_early, best_weights_callback, wand_callback, reduce_lr]
+    # "backup" models at each epoch
+    callbacks += [
+        ModelCheckpoint("./backup_model_last.keras", monitor=metric, mode="max"),
+        ModelCheckpoint(
+            "./backup_model_best.keras", monitor=metric, mode="max", save_best_only=True
+        ),
+    ]
 
-    callbacks = [stop_early, best_weights_callback, wand_callback]
     print(model.summary())
     history = model.fit(
         train_gen,

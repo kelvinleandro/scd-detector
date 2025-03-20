@@ -2,13 +2,14 @@ from preprocessing import preprocessing_chagas, status_manegement
 from configs import preprocess_config
 
 
-def run_preprocessing_steps(current_config, compare=True):
+def run_preprocessing_steps(current_config, compare=True, data_path="preprocessed"):
     print(current_config.__dict__)
 
     if compare:
         current_config_already_run = (
             status_manegement.compare_current_config_with_last_used(
-                current_config=current_config
+                current_config=current_config,
+                last_config_pkl=f"data/{data_path}/last_config.pkl",
             )
         )
     else:
@@ -54,7 +55,9 @@ def run_preprocessing_steps(current_config, compare=True):
             "pid_test": None,
         }
 
-        data_split_result = status_manegement.load_preprocessed_pkls(data_split_result)
+        data_split_result = status_manegement.load_preprocessed_pkls(
+            data_split_result, pkls_folder=data_path
+        )
 
     return data_split_result
 

@@ -27,9 +27,10 @@ def test_baseline_model(
     print("Passed load model")
 
     all_pred_prob = []
-    prog_iter_test = tqdm(test_gen, desc="validating", leave=False, disable=True)
     print(f"Before predicting. Len = {len(test_gen)}")
-    for batch_idx, batch in enumerate(prog_iter_test):
+    for batch_idx, batch in tqdm(
+        enumerate(test_gen), total=len(test_gen), desc="validating"
+    ):
         if batch_idx >= len(test_gen):
             print("Forcing stop: Exceeded dataset length")
             break
@@ -159,8 +160,10 @@ def test_imlenet_model(
         )
 
     all_pred_prob = []
-    prog_iter_test = tqdm(test_gen, desc="validating", leave=False, disable=True)
-    for batch_idx, batch in enumerate(prog_iter_test):
+    print(f"Len test: {len(test_gen)}")
+    for batch_idx, batch in tqdm(
+        enumerate(test_gen), total=len(test_gen), desc="validating"
+    ):
         if batch_idx >= len(test_gen):
             print("Forcing stop: Exceeded dataset length")
             break
@@ -171,8 +174,9 @@ def test_imlenet_model(
     if n_classes > 1:
         all_pred = np.argmax(all_pred_prob, axis=1)
     else:
-        all_pred = all_pred_prob
+        all_pred = all_pred_prob.flatten()
 
+    print("After predicting...")
     final_pred = []
     final_gt = []
     final_pred_sum = []
@@ -214,13 +218,16 @@ def test_imlenet_model(
                 )
             )
         else:
-            tmp_gt = data_split_result["y_test"][data_split_result["pid_test"] == i_pid]
+            tmp_gt = data_split_result["y_test"].flatten()[
+                data_split_result["pid_test"] == i_pid
+            ]
 
         final_pred.append(Counter(tmp_pred).most_common(1)[0][0])
         final_gt.append(Counter(tmp_gt).most_common(1)[0][0])
     # print(final_gt)
     # print(final_pred)
     tmp_report = classification_report(final_gt, final_pred, output_dict=True)
+    print(tmp_report)
 
     log_wandb.log(
         {
