@@ -27,19 +27,19 @@ class Config:
 
         """
 
-        self.signal_len = 60 * 128  # 640
+        self.signal_len = 10 * 128
         self.seed = 42
         self.batch_size = 64
         self.metric = "val_f1_score"
         self.att_layer = "Additive"
         self.batch_position = "before"
         self.input_channels = 1
-        self.beat_len = 128
+        self.beat_len = 64
         self.kernel_size = 16
-        self.learning_rate = 0.001
-        self.dropout_rate = 0.8
+        self.learning_rate = 0.0001
+        self.dropout_rate = 0.5
         self.num_blocks_list = [2, 2, 2]
         self.start_filters = 16
         self.lstm_units = self.start_filters * (2 ** (len(self.num_blocks_list) - 2))
-        self.classes = 2
+        self.classes = 1
         self.patience = 10

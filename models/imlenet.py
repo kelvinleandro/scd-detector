@@ -467,12 +467,10 @@ def build_imle_net(config, attention_layer: Layer, sub=False) -> tf.keras.Model:
             loss=loss,
             metrics=[
                 "accuracy",
-                # tf.keras.metrics.AUC(multi_label=True),
-                tf.keras.metrics.AUC(multi_label=False),
+                tf.keras.metrics.AUC(multi_label=True),
                 tf.keras.metrics.Precision(),
                 tf.keras.metrics.Recall(),
-                tf.keras.metrics.F1Score(average="micro", threshold=0.5),
-                # tf.keras.metrics.F1Score(average="macro", threshold=0.5),
+                tf.keras.metrics.F1Score(average="macro", threshold=0.5),
                 Specificity(),
             ],
         )
