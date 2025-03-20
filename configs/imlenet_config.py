@@ -34,9 +34,9 @@ class Config:
         self.att_layer = "Additive"
         self.batch_position = "before"
         self.input_channels = 1
-        self.beat_len = 64
+        self.beat_len = 128
         self.kernel_size = 16
-        self.learning_rate = 0.0001
+        self.learning_rate = 0.01
         self.dropout_rate = 0.5
         self.num_blocks_list = [2, 2, 2]
         self.start_filters = 16
