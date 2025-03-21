@@ -11,13 +11,8 @@ os.makedirs(weights_path, exist_ok=True)
 data = {
     "x_train": None,
     "x_val": None,
-    "x_test": None,
     "y_train": None,
     "y_val": None,
-    "y_test": None,
-    "pid_train": None,
-    "pid_val": None,
-    "pid_test": None,
 }
 
 data_path = "data/music_preprocessed_10s_hotencodeFalse_standard"
