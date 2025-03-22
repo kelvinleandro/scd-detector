@@ -30,16 +30,23 @@ class Config:
         self.signal_len = 10 * 128
         self.seed = 42
         self.batch_size = 64
-        self.metric = "val_f1_score"
+        self.metric = "val_accuracy"
         self.att_layer = "Additive"
         self.batch_position = "before"
         self.input_channels = 1
         self.beat_len = 128
         self.kernel_size = 16
-        self.learning_rate = 0.01
+        self.learning_rate = 0.001
         self.dropout_rate = 0.5
         self.num_blocks_list = [2, 2, 2]
         self.start_filters = 16
-        self.lstm_units = self.start_filters * (2 ** (len(self.num_blocks_list) - 2))
-        self.classes = 1
+        self.lstm_units = int(
+            self.start_filters * (2 ** (len(self.num_blocks_list) - 2))
+        )
+        self.classes = 2
         self.patience = 10
+
+        self.activation = "sigmoid"  # sigmoid | softmax
+        self.loss = (
+            "binary_crossentropy"  # binary_crossentropy | categorical_crossentropy
+        )

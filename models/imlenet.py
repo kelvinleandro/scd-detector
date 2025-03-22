@@ -33,7 +33,7 @@ from tensorflow.keras import backend as K
 from typing import Tuple
 
 from .reshape_layer import ReshapeLayer
-from metrics import Specificity
+from metrics import Specificity, Precision, Recall, F1Score
 
 
 class MultiHeadAttention(Layer):
@@ -449,28 +449,25 @@ def build_imle_net(config, attention_layer: Layer, sub=False) -> tf.keras.Model:
     x = ReshapeLayer((-1, config.input_channels, int(num_filters / 2)))(x)
     x, _ = attention_layer(name="channel_att")(x)
 
-    activation = "sigmoid" if config.classes < 2 else "softmax"
-    outputs = Dense(config.classes, activation=activation)(x)
+    outputs = Dense(config.classes, activation=config.activation)(x)
 
     model = tf.keras.models.Model(inputs=inputs, outputs=outputs)
 
-    loss = (
-        tf.keras.losses.BinaryCrossentropy()
-        if config.classes < 2
-        else tf.keras.losses.CategoricalCrossentropy()
-    )
     if not sub:
         model.compile(
             optimizer=tf.keras.optimizers.Adam(
                 learning_rate=config.learning_rate, weight_decay=0.001
             ),
-            loss=loss,
+            loss=config.loss,
             metrics=[
                 "accuracy",
                 tf.keras.metrics.AUC(multi_label=True),
-                tf.keras.metrics.Precision(),
-                tf.keras.metrics.Recall(),
-                tf.keras.metrics.F1Score(average="macro", threshold=0.5),
+                # tf.keras.metrics.Precision(),
+                # tf.keras.metrics.Recall(),
+                # tf.keras.metrics.F1Score(average="macro", threshold=0.5),
+                Precision(),
+                Recall(),
+                F1Score(),
                 Specificity(),
             ],
         )
