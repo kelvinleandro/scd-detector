@@ -144,13 +144,17 @@ class ResidualUnit(object):
         return [x, y]
 
 
-def get_model(n_classes, last_layer="sigmoid", dropout_keep_prob=0.5):
+def get_model(
+    n_classes, input_shape=(4096, 12), last_layer="sigmoid", dropout_keep_prob=0.5
+):
     kernel_size = 16
     kernel_initializer = "he_normal"
-    signal = Input(shape=(4096, 12), dtype=np.float32, name="signal")
+    sig_len = input_shape[0]
+
+    signal = Input(shape=input_shape, dtype=np.float32, name="signal")
     x = signal
     x = Conv1D(
-        64,
+        16,
         kernel_size,
         padding="same",
         use_bias=False,
@@ -159,29 +163,29 @@ def get_model(n_classes, last_layer="sigmoid", dropout_keep_prob=0.5):
     x = BatchNormalization()(x)
     x = Activation("relu")(x)
     x, y = ResidualUnit(
-        1024,
-        128,
+        int(sig_len / 4),
+        32,
         kernel_size=kernel_size,
         kernel_initializer=kernel_initializer,
         dropout_keep_prob=dropout_keep_prob,
     )([x, x])
     x, y = ResidualUnit(
-        256,
-        196,
+        int(sig_len / 4**2),
+        64,
         kernel_size=kernel_size,
         kernel_initializer=kernel_initializer,
         dropout_keep_prob=dropout_keep_prob,
     )([x, y])
     x, y = ResidualUnit(
-        64,
-        256,
+        int(sig_len / 4**3),
+        128,
         kernel_size=kernel_size,
         kernel_initializer=kernel_initializer,
         dropout_keep_prob=dropout_keep_prob,
     )([x, y])
     x, _ = ResidualUnit(
-        16,
-        320,
+        int(sig_len / 4**4),
+        256,
         kernel_size=kernel_size,
         kernel_initializer=kernel_initializer,
         dropout_keep_prob=dropout_keep_prob,
@@ -195,5 +199,5 @@ def get_model(n_classes, last_layer="sigmoid", dropout_keep_prob=0.5):
 
 
 if __name__ == "__main__":
-    model = get_model(1)
+    model = get_model(1, input_shape=(128 * 60, 1))
     model.summary()
