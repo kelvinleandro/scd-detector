@@ -17,6 +17,7 @@ from data.datagen import DataGen
 from sklearn.model_selection import KFold, StratifiedKFold
 import hashlib
 from datetime import datetime
+from utils import sample_patient_data
 
 import train
 import test
@@ -42,16 +43,33 @@ data_split_result = main_preprocessing.run_preprocessing_steps(
     preprocess_conf,
     compare=False,
     data_path="music_preprocessed_10s_hotencodeFalse_standard",
+    # data_path="music_preprocessed_10s_hotencodeFalse_noFilter_standard",
+    # data_path="music_preprocessed_10s_standard",
 )
 imlenet_conf.signal_len = data_split_result["x_train"].shape[1]
 
 print("SHAPEEEEEEEEEEEEEEEEE")
 print(data_split_result["y_test"].shape, data_split_result["pid_test"].shape)
-# for a single output model (problem in f1-score metric)
-data_split_result["y_train"] = data_split_result["y_train"].reshape(-1, 1)
-data_split_result["y_val"] = data_split_result["y_val"].reshape(-1, 1)
-data_split_result["y_test"] = data_split_result["y_test"].reshape(-1, 1)
-print(data_split_result["y_test"].shape, data_split_result["pid_test"].shape)
+if len(data_split_result["y_train"].shape) == 1:
+    data_split_result["y_train"] = data_split_result["y_train"].reshape(-1, 1)
+    data_split_result["y_val"] = data_split_result["y_val"].reshape(-1, 1)
+    data_split_result["y_test"] = data_split_result["y_test"].reshape(-1, 1)
+    print(data_split_result["y_test"].shape, data_split_result["pid_test"].shape)
+
+# Choosing a subset for training
+if preprocess_conf.has_limit:
+    print(f"Old training len: {len(data_split_result['y_train'])}")
+    tmp_x, tmp_y, tmp_pids = sample_patient_data(
+        data_split_result["x_train"],
+        data_split_result["y_train"],
+        data_split_result["pid_train"],
+        n=preprocess_conf.num_limit,
+        random_seed=imlenet_conf.seed,
+    )
+    data_split_result["x_train"] = tmp_x
+    data_split_result["y_train"] = tmp_y
+    data_split_result["pid_train"] = tmp_pids
+    print(f"New training len: {len(data_split_result['y_train'])}")
 
 if preprocess_conf.kfolds:
     datax_total = np.append(
