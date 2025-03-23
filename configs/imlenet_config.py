@@ -43,7 +43,7 @@ class Config:
         self.lstm_units = int(
             self.start_filters * (2 ** (len(self.num_blocks_list) - 2))
         )
-        self.classes = 2
+        self.classes = 1
         self.patience = 10
 
         self.activation = "sigmoid"  # sigmoid | softmax

@@ -39,4 +39,4 @@ class Config:
         self.beat_segmentation = False
         self.beat_percentage = 0.5
         self.kfolds = False
-        self.fold = 2
+        self.fold = None

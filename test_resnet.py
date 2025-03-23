@@ -14,7 +14,7 @@ data = {
     "pid_test": None,
 }
 
-data_path = "data/music_preprocessed_10s_hotencodeFalse_standard"
+data_path = "data/preprocessed_1class_standard"
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices("GPU")))
 
@@ -25,11 +25,12 @@ for key in data.keys():
 print("DATA READ!")
 
 print("LOADING WEIGHTS...")
-model = tf.keras.models.load_model(f"{weights_path}/final_model.keras")
+model = tf.keras.models.load_model(f"{weights_path}/backup_model_best.keras")
 print(model.summary())
 
-n_classes = data["y_test"].shape[-1]
+n_classes = 1
 
+print("Predicting...")
 all_pred_prob = []
 for idx, input_x in tqdm(
     enumerate(data["x_test"]), total=len(data["x_test"]), desc="validating"
@@ -37,15 +38,15 @@ for idx, input_x in tqdm(
     if idx >= len(data["x_test"]):
         print("Forcing stop: Exceeded dataset length")
         break
-    pred = model(input_x)
+    pred = model(input_x.reshape(1, -1, 1))
     all_pred_prob.append(pred)
 
 print("After predicting")
-# all_pred_prob = np.concatenate(all_pred_prob)
+all_pred_prob = np.concatenate(all_pred_prob)
 if n_classes > 1:
     all_pred = np.argmax(all_pred_prob, axis=1)
 else:
-    all_pred = all_pred_prob
+    all_pred = all_pred_prob.flatten()
 
 final_pred = []
 final_gt = []
@@ -69,5 +70,21 @@ tmp_report = classification_report(final_gt, final_pred, output_dict=True)
 print("Classification report counter:")
 print(tmp_report)
 
+confusion = confusion_matrix(final_gt, final_pred)
 print("Confusion matrix:")
-print(confusion_matrix(final_gt, final_pred))
+print(confusion)
+
+tn, fp, fn, tp = confusion.ravel()
+acc = (tp + tn) / (tn + tp + fn + tp + 1e-08)
+recall = (tp) / (fn + tp + 1e-08)
+specificity = (tn) / (tn + fp + 1e-08)
+precision = (tp) / (tp + fp + 1e-08)
+f1 = (2 * precision * recall) / (precision + recall + 1e-08)
+geometric_mean = (recall * specificity) ** (0.5)
+
+print(f"Accuracy: {acc*100:.3f}%")
+print(f"Recall: {recall*100:.3f}%")
+print(f"Specificity: {specificity*100:.3f}%")
+print(f"Precision: {precision*100:.3f}%")
+print(f"F1-Score: {f1*100:.3f}%")
+print(f"Geometric mean: {geometric_mean*100:.3f}%")
