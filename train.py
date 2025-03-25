@@ -98,6 +98,8 @@ class WandbWeightsCallback(Callback):
             wandb.log({"val_f1_score": logs["val_f1_score"]}, step=epoch)
         if "val_specificity" in logs:
             wandb.log({"val_specificity": logs["val_specificity"]}, step=epoch)
+        if "val_geometric_mean" in logs:
+            wandb.log({"val_geometric_mean": logs["val_geometric_mean"]}, step=epoch)
 
 
 def train_baseline_model(
@@ -217,7 +219,7 @@ def train_model(
     wand_callback = WandbWeightsCallback()
     reduce_lr = (
         keras.callbacks.ReduceLROnPlateau(
-            monitor="val_loss", mode="min", factor=0.1, patience=5, min_lr=1e-07
+            monitor=metric, mode="max", factor=0.1, patience=7, min_lr=1e-07
         ),
     )
     callbacks = [stop_early, best_weights_callback, wand_callback, reduce_lr]
