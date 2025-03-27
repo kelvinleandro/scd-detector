@@ -33,7 +33,7 @@ from tensorflow.keras import backend as K
 from typing import Tuple
 
 from .reshape_layer import ReshapeLayer
-from metrics import Specificity, Precision, Recall, F1Score
+from metrics import Specificity, Precision, Recall, F1Score, GeometricMean
 
 
 class MultiHeadAttention(Layer):
@@ -461,7 +461,7 @@ def build_imle_net(config, attention_layer: Layer, sub=False) -> tf.keras.Model:
             loss=config.loss,
             metrics=[
                 "accuracy",
-                tf.keras.metrics.AUC(multi_label=True),
+                tf.keras.metrics.AUC(multi_label=True, name="auc"),
                 # tf.keras.metrics.Precision(),
                 # tf.keras.metrics.Recall(),
                 # tf.keras.metrics.F1Score(average="macro", threshold=0.5),
@@ -469,6 +469,7 @@ def build_imle_net(config, attention_layer: Layer, sub=False) -> tf.keras.Model:
                 Recall(),
                 F1Score(),
                 Specificity(),
+                GeometricMean(),
             ],
         )
         model._name = "IMLE-Net"
