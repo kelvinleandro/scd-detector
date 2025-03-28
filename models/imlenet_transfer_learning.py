@@ -30,8 +30,8 @@ from tensorflow.keras.layers import (
     Flatten,
     Dropout,
 )
-
 from .reshape_layer import ReshapeLayer
+from metrics import GeometricMean, Specificity, Recall
 
 
 def build_transfer_model(model_conf, preprocess_conf) -> tf.keras.Model:
@@ -123,13 +123,16 @@ def build_transfer_model(model_conf, preprocess_conf) -> tf.keras.Model:
 
     model.compile(
         optimizer=optimizer_in_use,
-        loss=tf.keras.losses.BinaryCrossentropy(),
+        loss=model_conf.loss,
         metrics=[
             "accuracy",
             tf.keras.metrics.AUC(multi_label=True, name="auc"),
-            tf.keras.metrics.Precision(),
-            tf.keras.metrics.Recall(),
+            tf.keras.metrics.Precision(name="precision"),
+            tf.keras.metrics.Recall(name="recall"),
             tf.keras.metrics.F1Score(average="macro", threshold=0.5, name="f1_score"),
+            GeometricMean(),
+            Specificity(),
+            Recall(name="recall_argmax"),
         ],
     )
     model._name = "IMLE-Net_Transfer_Learning"
