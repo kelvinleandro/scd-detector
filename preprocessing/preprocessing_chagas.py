@@ -145,6 +145,14 @@ def slide_cut_withpeaks(
         tmp_ts = X[each_sample]
         tmp_Y = Y[each_sample]
 
+        i_stride = stride
+
+        if not output_pid:
+            if tmp_Y == 0:
+                i_stride = stride // current_config.stride_numerator_factor
+            elif tmp_Y == 1:
+                i_stride = stride // (current_config.stride_numerator_factor * 2)
+
         array_filtered = tmp_ts.copy()
 
         if "lowpass" in filters:
@@ -172,7 +180,7 @@ def slide_cut_withpeaks(
         count_of_peaks = len(indexes_peaks)
         # print(each_sample, count_of_peaks)
         count_beats_already = 0
-        for each_stride_counts in range(0, count_of_peaks, stride):
+        for each_stride_counts in range(0, count_of_peaks, i_stride):
 
             if current_config.has_limit:
                 if count_beats_already > 50:
@@ -454,7 +462,7 @@ def incremental_read_data(
         percentage=current_config.beat_percentage,
         filters=current_config.filters,
         current_config=current_config,
-        output_pid=True,  # for music
+        output_pid=False,
     )
     del X_train_og, Y_train_og
     print("after (train): ")
@@ -473,7 +481,7 @@ def incremental_read_data(
         window_size=window_size,
         stride=stride,
         percentage=current_config.beat_percentage,
-        output_pid=True,
+        output_pid=False,
         filters=current_config.filters,
         current_config=current_config,
     )
@@ -494,7 +502,7 @@ def incremental_read_data(
         window_size=window_size,
         stride=stride,
         percentage=current_config.beat_percentage,
-        output_pid=True,
+        output_pid=False,
         filters=current_config.filters,
         current_config=current_config,
     )
