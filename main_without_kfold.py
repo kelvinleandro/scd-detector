@@ -1,3 +1,4 @@
+from collections import Counter
 import numpy as np
 from numpy.random import default_rng
 
@@ -27,7 +28,7 @@ import tensorflow as tf
 print("Num GPUs Available: ", len(tf.config.list_physical_devices("GPU")))
 
 # exit(1)
-run_transfer_learning = False
+run_transfer_learning = True
 
 preprocess_conf = preprocess_config.Config()
 
@@ -39,12 +40,18 @@ transfer_learning_conf = transfer_learning_config.Config()
 transfer_learning_conf.batch_size = imlenet_conf.batch_size
 imlenet_conf.decision_threshold = transfer_learning_conf.decision_threshold
 
+# data_path = (
+#     "music_preprocessed_10s_hotencodeFalse_standard"
+#     if imlenet_conf.classes == 1 and preprocess_conf.hot_encode == False
+#     else "music_preprocessed_10s_onehot_beatSeg_standard"
+# )
+data_path = "preprocessed_60s_onehot_beatSeg_standard"
 data_split_result = main_preprocessing.run_preprocessing_steps(
     preprocess_conf,
     compare=False,
-    data_path="music_preprocessed_10s_hotencodeFalse_standard",
+    # data_path="music_preprocessed_10s_hotencodeFalse_standard",
     # data_path="music_preprocessed_10s_hotencodeFalse_noFilter_standard",
-    # data_path="music_preprocessed_10s_standard",
+    data_path=data_path,
 )
 imlenet_conf.signal_len = data_split_result["x_train"].shape[1]
 
@@ -71,6 +78,7 @@ if preprocess_conf.has_limit:
     data_split_result["pid_train"] = tmp_pids
     print(f"New training len: {len(data_split_result['y_train'])}")
 
+print(f"Counter: {Counter(data_split_result['y_train'].argmax(-1))}")
 if preprocess_conf.kfolds:
     datax_total = np.append(
         data_split_result["x_train"], data_split_result["x_val"], axis=0

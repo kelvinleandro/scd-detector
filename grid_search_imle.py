@@ -10,12 +10,13 @@ from configs import (
 from data.datagen import DataGen
 import train
 import test
+from utils import sample_patient_data
 
 import tensorflow as tf
 
 print("Num GPUs Available: ", len(tf.config.list_physical_devices("GPU")))
 
-run_transfer_learning = False
+run_transfer_learning = True
 
 preprocess_conf = preprocess_config.Config()
 
@@ -30,52 +31,53 @@ imlenet_conf.decision_threshold = transfer_learning_conf.decision_threshold
 data_split_result = main_preprocessing.run_preprocessing_steps(
     preprocess_conf,
     compare=False,
-    data_path="music_preprocessed_10s_hotencodeFalse_standard",
+    data_path="preprocessed_60s_onehot_beatSeg_standard",
 )
-data_split_result["y_train"] = data_split_result["y_train"].reshape(-1, 1)
-data_split_result["y_val"] = data_split_result["y_val"].reshape(-1, 1)
-data_split_result["y_test"] = data_split_result["y_test"].reshape(-1, 1)
+# tmp_x, tmp_y, tmp_pids = sample_patient_data(
+#     data_split_result["x_train"],
+#     data_split_result["y_train"],
+#     data_split_result["pid_train"],
+#     n=50,
+#     random_seed=42,
+# )
+# data_split_result["y_train"] = data_split_result["y_train"].reshape(-1, 1)
+# data_split_result["y_val"] = data_split_result["y_val"].reshape(-1, 1)
+# data_split_result["y_test"] = data_split_result["y_test"].reshape(-1, 1)
 
-# slices = [64, 128]
+# limit_opts = [(False, None)]
+# beat_len_opts = [16, 32, 64]
+# beat_len_opts = [64, 128]
 # blocks_list_opts = [[2, 2], [2, 2, 2], [3, 4, 3], [2, 2, 2, 2]]
-blocks_list_opts = [[2], [2, 2], [2, 2, 2]]
+# blocks_list_opts = [[1], [2], [2, 2]]
 # start_filters_opts = [16, 32]
-dropout_values = [0.5, 0.8]
-lr_opts = [0.01, 0.001, 0.0001]
+# bs_opts = [256, 512]
+# dropout_values = [0.5, 0.8]
+# lr_opts = [0.01, 0.001, 0.0001]
+# kernel_size_opts = [8, 16]
 
-bs_opts = [256, 512]
-kernel_size_opts = [8, 16]
-
+lstm_opts = [128, 256, 2048]
+dense_opts = [[64], [128], [256], [512]]
 
 # combinations = list(
-#     product(slices, blocks_list_opts, start_filters_opts, dropout_values, lr_opts)
+#     product(beat_len_opts, blocks_list_opts, start_filters_opts, dropout_values, lr_opts)
 # )
-combinations = list(
-    product(bs_opts, blocks_list_opts, kernel_size_opts, dropout_values, lr_opts)
-)
+combinations = list(product(lstm_opts, dense_opts))
 
 print(f"Total combinations: {len(combinations)}")
 # for idx, (beat_len, num_blocks_list, start_filters, dropout, lr) in enumerate(
 #     combinations
 # ):
-for idx, (batch_size, num_blocks_list, kernel_size, dropout, lr) in enumerate(
-    combinations
-):
+for idx, (lstm_units, dense_layers) in enumerate(combinations):
     print(f"Starting combination {idx+1}/{len(combinations)}")
     try:
+        preprocess_conf = preprocess_config.Config()
         imlenet_conf = imlenet_config.Config()
         transfer_learning_conf = transfer_learning_config.Config()
         transfer_learning_conf.batch_size = imlenet_conf.batch_size
         imlenet_conf.decision_threshold = transfer_learning_conf.decision_threshold
 
-        imlenet_conf.batch_size = batch_size
-        imlenet_conf.kernel_size = kernel_size
-        imlenet_conf.num_blocks_list = num_blocks_list
-        imlenet_conf.dropout_rate = dropout
-        imlenet_conf.learning_rate = lr
-        imlenet_conf.lstm_units = int(
-            imlenet_conf.start_filters * (2 ** (len(imlenet_conf.num_blocks_list) - 2))
-        )
+        transfer_learning_conf.lstm_units = lstm_units
+        transfer_learning_conf.dense_layers = dense_layers
 
         train_gen = DataGen(
             data_split_result["x_train"],
